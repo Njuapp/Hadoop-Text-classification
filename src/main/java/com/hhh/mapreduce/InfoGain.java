@@ -14,6 +14,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 /**
@@ -31,7 +32,6 @@ public class InfoGain {
 
         job.setJarByClass(InfoGain.class);
         job.setInputFormatClass(KeyValueTextInputFormat.class);
-        job.setMapperClass(IGMapper.class);
         job.setReducerClass(IGReducer.class);
         job.setCombinerClass(IGCombiner.class);
         job.setMapOutputKeyClass(Text.class);
@@ -43,21 +43,15 @@ public class InfoGain {
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }
-    public static class IGMapper extends Mapper<Text, Text, Text, Text>{
-        protected void map (Text key, Text value, Context context)
-                throws IOException, InterruptedException{
-            context.write(key, value);
-        }
-    }
 
-    public static class IGReducer extends Reducer<Text, Text, Text, DoubleWritable>{
+    public static class IGReducer extends Reducer<Text, Text, DoubleWritable, Text>{
 
         protected void reduce(Text key, Iterable<Text> values, Context context)
                 throws IOException, InterruptedException {
             int[] stat = new int[20];
             int sum = 0;
             for(Text val : values){
-                int label = Integer.parseInt(val.toString());
+                int label = Integer.parseInt(val.toString())  ;
                 stat[label]++;
                 sum ++;
             }
@@ -73,7 +67,7 @@ public class InfoGain {
 
             for(int i = 0; i < 20; i ++){
                 int cls = 1000;
-                if (i == 15)
+                if(i==15)
                     cls = 997;
                 stat[i] = cls - stat[i];
             }
@@ -89,7 +83,7 @@ public class InfoGain {
 
 
             double entropy = negentropy + posentropy;
-            context.write(key, new DoubleWritable(entropy));
+            context.write( new DoubleWritable(entropy), key);
         }
     }
 
