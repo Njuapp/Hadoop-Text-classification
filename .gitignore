@@ -2,4 +2,6 @@
 task3/
 target/
 tokenized/
+.idea/workspace.xml
+input/
 
