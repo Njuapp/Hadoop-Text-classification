@@ -22,8 +22,8 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client</artifactId>
-            <version>2.2.0</version>
+            <artifactId>hadoop-client</artifactId>
+            <version>2.7.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.mahout</groupId>
@@ -57,7 +57,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.hhh.mapreduce.preprocess</mainClass>
+                                    <mainClass>com.hhh.mapreduce.Main</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
