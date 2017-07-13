@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3adfd39e-13f5-4849-96e2-a3a3bb9dd058" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/com/hhh/mapreduce/preprocess.java" afterPath="$PROJECT_DIR$/src/main/java/com/hhh/mapreduce/preprocess.java" />
-    </list>
+    <list default="true" id="3adfd39e-13f5-4849-96e2-a3a3bb9dd058" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -751,12 +749,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1499846658356</updated>
-      <workItem from="1499846660838" duration="17001000" />
+      <workItem from="1499846660838" duration="18186000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="17001000" />
+    <option name="totallyTimeSpent" value="18186000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="40" y="23" width="1400" height="797" extended-state="0" />
