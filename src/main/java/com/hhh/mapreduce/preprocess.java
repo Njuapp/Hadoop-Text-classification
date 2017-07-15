@@ -98,6 +98,7 @@ public class preprocess {
             }
         }
 
+        @Override
         protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             split = (FileSplit) context.getInputSplit();
             Path path = split.getPath();
@@ -128,6 +129,7 @@ public class preprocess {
             output = new MultipleOutputs(context);
         }
 
+        @Override
         protected void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
             String text = key.toString();
             int index = text.lastIndexOf(":");
