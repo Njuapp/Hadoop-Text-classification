@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * Created by nicbh on 2017/7/15.
  */
-public class TFIDF {
+public class TFIDF_ {
     public static void main(String[] args) throws Exception {
         if (args.length != 4) {
             System.err.println("Usage:TFIDF <isHDFS><feature><input><output>");
@@ -46,10 +46,10 @@ public class TFIDF {
         conf.set("feature", args[1]);
 
         Job job1 = Job.getInstance(conf, "TF-IDF");
-        job1.setJarByClass(TFIDF.class);
+        job1.setJarByClass(TFIDF_.class);
         job1.setInputFormatClass(KeyValueTextInputFormat.class);
-        job1.setMapperClass(TFIDF.tfidfMapper.class);
-        job1.setReducerClass(TFIDF.tfidfReducer.class);
+        job1.setMapperClass(TFIDF_.tfidfMapper.class);
+        job1.setReducerClass(TFIDF_.tfidfReducer.class);
         job1.setMapOutputKeyClass(Text.class);
         job1.setMapOutputValueClass(Text.class);
         job1.setOutputKeyClass(Text.class);
@@ -58,10 +58,10 @@ public class TFIDF {
         FileOutputFormat.setOutputPath(job1, tempPath);
 
         Job job2 = Job.getInstance(conf, "TF-IDF2");
-        job2.setJarByClass(TFIDF.class);
+        job2.setJarByClass(TFIDF_.class);
         job2.setInputFormatClass(KeyValueTextInputFormat.class);
-        job2.setMapperClass(TFIDF.tfidf2Mapper.class);
-        job2.setReducerClass(TFIDF.tfidf2Reducer.class);
+        job2.setMapperClass(TFIDF_.tfidf2Mapper.class);
+        job2.setReducerClass(TFIDF_.tfidf2Reducer.class);
         job2.setMapOutputKeyClass(Text.class);
         job2.setMapOutputValueClass(Text.class);
         job2.setOutputKeyClass(Text.class);
