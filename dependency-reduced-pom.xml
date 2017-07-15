@@ -18,7 +18,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.hhh.mapreduce.preprocess</mainClass>
+                  <mainClass>com.hhh.mapreduce.Main</mainClass>
                 </transformer>
               </transformers>
             </configuration>

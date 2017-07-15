@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="lib">
-    <CLASSES>
-      <root url="file://$USER_HOME$/hadoop_installs/hadoop-2.7.1/lib" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
