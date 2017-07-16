@@ -65,6 +65,7 @@ public class preprocess {
         job.setMapOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
+        job.setNumReduceTasks(1000);
 
         Path file = new Path(args[2]);
         FileStatus[] classFile = fs.listStatus(file);
@@ -112,10 +113,16 @@ public class preprocess {
                 CharTermAttribute ca = ts.getAttribute(CharTermAttribute.class);
                 String word = ca.toString();
 
-
                 context.write(new Text(word + ":" + filename), new IntWritable(1));
             }
             ts.close();
+        }
+
+        @Override
+        protected void cleanup(Context context) throws IOException, InterruptedException {
+            classMap = null;
+            analyzer = null;
+            split = null;
         }
     }
 
@@ -125,7 +132,6 @@ public class preprocess {
 
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
-            super.setup(context);
             output = new MultipleOutputs(context);
         }
 
@@ -144,7 +150,6 @@ public class preprocess {
 
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
-            super.cleanup(context);
             output.close();
         }
     }
