@@ -56,19 +56,19 @@ public class TFIDF_ {
         job1.setOutputKeyClass(Text.class);
         job1.setOutputValueClass(Text.class);
         KeyValueTextInputFormat.addInputPath(job1, new Path(args[2]));
-        FileOutputFormat.setOutputPath(job1, tempPath);
+        FileOutputFormat.setOutputPath(job1, new Path(args[3]));
 
-        Job job2 = Job.getInstance(conf, "TF-IDF2");
-        job2.setJarByClass(TFIDF_.class);
-        job2.setInputFormatClass(KeyValueTextInputFormat.class);
-        job2.setMapperClass(TFIDF_.tfidf2Mapper.class);
-        job2.setReducerClass(TFIDF_.tfidf2Reducer.class);
-        job2.setMapOutputKeyClass(Text.class);
-        job2.setMapOutputValueClass(Text.class);
-        job2.setOutputKeyClass(Text.class);
-        job2.setOutputValueClass(Text.class);
-        KeyValueTextInputFormat.addInputPath(job2, tempPath);
-        FileOutputFormat.setOutputPath(job2, new Path(args[3]));
+//        Job job2 = Job.getInstance(conf, "TF-IDF2");
+//        job2.setJarByClass(TFIDF_.class);
+//        job2.setInputFormatClass(KeyValueTextInputFormat.class);
+//        job2.setMapperClass(TFIDF_.tfidf2Mapper.class);
+//        job2.setReducerClass(TFIDF_.tfidf2Reducer.class);
+//        job2.setMapOutputKeyClass(Text.class);
+//        job2.setMapOutputValueClass(Text.class);
+//        job2.setOutputKeyClass(Text.class);
+//        job2.setOutputValueClass(Text.class);
+//        KeyValueTextInputFormat.addInputPath(job2, tempPath);
+//        FileOutputFormat.setOutputPath(job2, new Path(args[3]));
 
         if (job1.waitForCompletion(true)) {
 //            System.exit(job2.waitForCompletion(true) ? 0 : 1);

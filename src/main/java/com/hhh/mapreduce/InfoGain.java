@@ -74,7 +74,7 @@ public class InfoGain {
                     int count = 1;
                     int num = Integer.parseInt(args[2]);
                     for (String word_idf : wordList) {
-                        int split = word_idf.indexOf(":");
+                        int split = word_idf.lastIndexOf(":");
                         String word = word_idf.substring(0, split );
                         String idf = word_idf.substring(split + 1);
                         writer.write(word + "\t" + idf + "\n");
