@@ -48,12 +48,68 @@ public class preprocess {
         Path mapFile = new Path(args[1]);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fs.open(mapFile)));
         String lineTxt;
+        HashMap<String, String> classMap = new HashMap<>();
+        while ((lineTxt = bufferedReader.readLine()) != null) {
+            String[] txt = lineTxt.split("\\s+");
+            if (txt.length >= 2)
+                classMap.put(txt[0], txt[1]);
+        }
+        Path outputPath = new Path(args[3]);
+        if (!fs.exists(outputPath))
+            fs.mkdirs(outputPath);
+        EnglishAnalyzer analyzer = new EnglishAnalyzer(Version.LUCENE_46);
+        for (FileStatus fis : fs.listStatus(new Path(args[2]))) {
+            Path dpath = fis.getPath();
+            String dpathname = dpath.getName();
+            if (dpathname.equals(".DS_Store"))
+                continue;
+            dpathname = classMap.get(dpathname);
+            for (FileStatus flis : fs.listStatus(dpath)) {
+                Path fpath = flis.getPath();
+                String pathname = fpath.getName();
+                if (pathname.equals(".DS_Store"))
+                    continue;
+                HashMap<String, Integer> wordMap = new HashMap<>();
+                Reader reader = new InputStreamReader(fs.open(fpath));
+                TokenStream ts = analyzer.tokenStream("fieldName", reader);
+                ts.reset();
+                while (ts.incrementToken()) {
+                    CharTermAttribute ca = ts.getAttribute(CharTermAttribute.class);
+                    String word = ca.toString();
+                    if (wordMap.containsKey(word))
+                        wordMap.put(word, wordMap.get(word) + 1);
+                    else
+                        wordMap.put(word, 1);
+                }
+                ts.close();
+                Path outPath = new Path(args[3] + "/" + pathname + "_" + dpathname);
+                Writer writer = new OutputStreamWriter(fs.create(outPath));
+                Set<Map.Entry<String, Integer>> it = wordMap.entrySet();
+                for (Map.Entry<String, Integer> entry : it) {
+                    writer.write(entry.getKey() + "\t" + entry.getValue() + "\n");
+                }
+                writer.close();
+            }
+        }
+
+/*
+        Configuration conf = new Configuration();
+        FileSystem fs;
+        if (args[0].equals("1")) {
+            fs = FileSystem.get(conf);
+        } else {
+            fs = FileSystem.getLocal(conf);
+        }
+        Path mapFile = new Path(args[1]);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fs.open(mapFile)));
+        String lineTxt;
         String outTxt = "";
         while ((lineTxt = bufferedReader.readLine()) != null) {
             String[] txt = lineTxt.split("\\s+");
             if (txt.length >= 2)
                 outTxt += txt[0] + ":" + txt[1] + "\t";
         }
+
         conf.set("classmap", outTxt);
         Job job = Job.getInstance(conf, "preprocess");
 
@@ -65,7 +121,7 @@ public class preprocess {
         job.setMapOutputValueClass(IntWritable.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
-        job.setNumReduceTasks(1000);
+        job.setNumReduceTasks(10);
 
         Path file = new Path(args[2]);
         FileStatus[] classFile = fs.listStatus(file);
@@ -79,6 +135,7 @@ public class preprocess {
         FileOutputFormat.setOutputPath(job, new Path(args[3]));
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
+        */
     }
 
     public static class preMapper extends Mapper<Object, Text, Text, IntWritable> {

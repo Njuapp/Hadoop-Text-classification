@@ -92,9 +92,10 @@ public class TFIDF {
             if (f.exists(out))
                 f.delete(out, true);
             Job job2 = Job.getInstance(configuration, "Job2");
-            job2.setMapperClass(Job2Mapper.class);
-            job2.setCombinerClass(Job2Combiner.class);
-            job2.setReducerClass(Job2Reducer.class);
+            job2.setJarByClass(TFIDF.class);
+            job2.setMapperClass(TFIDF.Job2Mapper.class);
+            job2.setCombinerClass(TFIDF.Job2Combiner.class);
+            job2.setReducerClass(TFIDF.Job2Reducer.class);
             job2.setMapOutputKeyClass(Text.class);
             job2.setMapOutputValueClass(Text.class);
             job2.setOutputKeyClass(Text.class);

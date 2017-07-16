@@ -95,7 +95,11 @@ public class InfoGain {
             split = (FileSplit) context.getInputSplit();
             String pathname = split.getPath().getName().toString();
             int index1 = pathname.indexOf("_"), index2 = pathname.indexOf("-");
-            String label = pathname.substring(index1 + 1, index2);
+            String label;
+            if (index2 == -1)
+                label = pathname.substring(index1 + 1);
+            else
+                label = pathname.substring(index1 + 1, index2);
             String k = key.toString() + ":" + label;
             context.write(new Text(k), new Text("1"));
 //            if (!map.containsKey(k)) {

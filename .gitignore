@@ -9,4 +9,7 @@ token/
 temp/
 tfidf/
 workspace.xml
+out/
+token3/
+infogain3/
 

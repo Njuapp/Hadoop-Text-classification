@@ -29,6 +29,7 @@ public class TFIDF_ {
         }
 
         Configuration conf = new Configuration();
+        Path tempPath = new Path("temp");
         FileSystem fs;
         if (args[0].equals("1")) {
             fs = FileSystem.get(conf);
@@ -37,15 +38,15 @@ public class TFIDF_ {
             fs = FileSystem.getLocal(conf);
             conf.set("isHDFS", "0");
         }
-        Path tempPath = new Path("temp");
         if (fs.exists(new Path(args[3])))
             fs.delete(new Path(args[3]), true);
         if (fs.exists(tempPath))
             fs.delete(tempPath, true);
         conf.set("filenum", Integer.toString(fs.listStatus(new Path(args[2])).length));
-        conf.set("feature", args[1]);
+//        conf.set("feature", args[1]);
 
         Job job1 = Job.getInstance(conf, "TF-IDF");
+        job1.addCacheFile(new Path(args[1]).toUri());
         job1.setJarByClass(TFIDF_.class);
         job1.setInputFormatClass(KeyValueTextInputFormat.class);
         job1.setMapperClass(TFIDF_.tfidfMapper.class);
@@ -82,7 +83,9 @@ public class TFIDF_ {
             split = (FileSplit) context.getInputSplit();
             Path path = split.getPath();
             String filename = path.getName().toString();
-            filename = filename.substring(0, filename.indexOf("-"));
+            int index = filename.indexOf("-");
+            if (index != -1)
+                filename = filename.substring(0, index);
             context.write(new Text(filename), new Text(key.toString() + ":" + value));
         }
     }
@@ -107,6 +110,7 @@ public class TFIDF_ {
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
             super.setup(context);
+            /*
             Configuration conf = context.getConfiguration();
             FileSystem fs;
             if (conf.get("isHDFS").equals("1")) {
@@ -114,8 +118,9 @@ public class TFIDF_ {
             } else {
                 fs = FileSystem.getLocal(conf);
             }
-            Path path = new Path(conf.get("feature"));
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fs.open(path)));
+            Path path = new Path(conf.get("feature"));*/
+
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(context.getCacheFiles()[0].toString()));//fs.open(path)));
             String lineTxt;
             while ((lineTxt = bufferedReader.readLine()) != null) {
                 String[] txt = lineTxt.split("\\s+");
@@ -133,7 +138,9 @@ public class TFIDF_ {
                 split = (FileSplit) context.getInputSplit();
                 Path path = split.getPath();
                 String filename = path.getName().toString();
-                filename = filename.substring(0, filename.indexOf("-"));
+                int index = filename.indexOf("-");
+                if (index != -1)
+                    filename = filename.substring(0, index);
                 context.write(new Text(wordMap.get(text)), new Text(filename + ":" + value));
             }
         }
