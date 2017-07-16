@@ -33,6 +33,8 @@ public class KNN {
         FileOutputFormat.setOutputPath(job, new Path(args[2]));
         job.setMapperClass(KNNMapper.class);
         job.setReducerClass(KNNReducer.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
         job.waitForCompletion(true);
     }
 
@@ -69,8 +71,7 @@ public class KNN {
                     BufferedReader reader = new BufferedReader(new FileReader(files[0].toString()));
                     try{
                         while((line = reader.readLine())!= null){
-                            tokens = line.split("/s");
-                            //TODO:parse the train file into instances
+                            tokens = line.split(" ");
                             train.add(new Instance(tokens));
                         }
                     }
@@ -86,7 +87,7 @@ public class KNN {
 
         @Override
         protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            Instance test = new Instance(value.toString().split("/s"));
+            Instance test = new Instance(value.toString().split(" "));
             double[] weight = new double[20];
             for(Instance tr: train){
                 double cos = Instance.distance(test, tr);

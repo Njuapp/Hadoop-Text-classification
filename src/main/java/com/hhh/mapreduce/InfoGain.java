@@ -63,15 +63,21 @@ public class InfoGain {
                     ArrayList<String> wordList = new ArrayList<String>();
                     while ((lineTxt = bufferedReader.readLine()) != null) {
                         String[] txt = lineTxt.split("\\s+");
-                        if (txt.length >= 2)
-                            wordList.add(txt[1]);
+                        if (txt.length >= 2){
+                            String word_idf = txt[1];
+                            wordList.add(word_idf);
+
+                        }
                     }
                     bufferedReader.close();
                     Writer writer = new OutputStreamWriter(fs.create(new Path(args[1] + "/terms.txt")));
                     int count = 1;
                     int num = Integer.parseInt(args[2]);
-                    for (String word : wordList) {
-                        writer.write(word + "\t" + count + "\n");
+                    for (String word_idf : wordList) {
+                        int split = word_idf.indexOf(":");
+                        String word = word_idf.substring(0, split );
+                        String idf = word_idf.substring(split + 1);
+                        writer.write(word + "\t" + idf + "\n");
                         if (count >= num)
                             break;
                         count++;
@@ -142,7 +148,7 @@ public class InfoGain {
                 posentropy -= prob * Math.log(prob);
             }
             posentropy *= (sum / 19997.0);
-
+            Double idf = Math.log(19997.0/ (1 + sum));
 
             for (int i = 0; i < 20; i++) {
                 int cls = 1000;
@@ -162,7 +168,7 @@ public class InfoGain {
 
 
             double entropy = negentropy + posentropy;
-            context.write(new DoubleWritable(entropy), key);
+            context.write(new DoubleWritable(entropy), new Text(key.toString()+":"+ idf.toString()));
         }
     }
 
