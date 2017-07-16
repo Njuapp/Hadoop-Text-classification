@@ -50,7 +50,7 @@ public class TFIDF_ {
         job1.setJarByClass(TFIDF_.class);
         job1.setInputFormatClass(KeyValueTextInputFormat.class);
         job1.setMapperClass(TFIDF_.tfidfMapper.class);
-        job1.setReducerClass(TFIDF_.tfidfReducer.class);
+        job1.setReducerClass(TFIDF_.tfidf2Reducer.class);
         job1.setMapOutputKeyClass(Text.class);
         job1.setMapOutputValueClass(Text.class);
         job1.setOutputKeyClass(Text.class);
@@ -71,7 +71,8 @@ public class TFIDF_ {
         FileOutputFormat.setOutputPath(job2, new Path(args[3]));
 
         if (job1.waitForCompletion(true)) {
-            System.exit(job2.waitForCompletion(true) ? 0 : 1);
+//            System.exit(job2.waitForCompletion(true) ? 0 : 1);
+            System.exit(0);
         }
         System.exit(1);
     }
@@ -81,12 +82,21 @@ public class TFIDF_ {
 
         protected void map(Text key, Text value, Context context) throws IOException, InterruptedException {
             split = (FileSplit) context.getInputSplit();
-            Path path = split.getPath();
-            String filename = path.getName().toString();
-            int index = filename.indexOf("-");
-            if (index != -1)
-                filename = filename.substring(0, index);
-            context.write(new Text(filename), new Text(key.toString() + ":" + value));
+
+//            Path path = split.getPath();
+//            String filename = path.getName().toString();
+//            int index = filename.indexOf("-");
+//            if (index != -1)
+//                filename = filename.substring(0, index);
+
+            String word = key.toString();
+            String[] words = value.toString().split("\\s+");
+            for (String w : words) {
+                String[] v = w.split(":");
+                String filename = v[0];
+                String val = v[1];
+                context.write(new Text(filename), new Text(word + ":" + val));
+            }
         }
     }
 
@@ -104,7 +114,7 @@ public class TFIDF_ {
     }
 
     public static class tfidfMapper extends Mapper<Text, Text, Text, Text> {
-        HashMap<String, String> wordMap = new HashMap<String, String>();
+        HashMap<String, String[]> wordMap = new HashMap<String, String[]>();
         private FileSplit split;
 
         @Override
@@ -118,16 +128,16 @@ public class TFIDF_ {
             } else {
                 fs = FileSystem.getLocal(conf);
             }
-            Path path = new Path(conf.get("feature"));*/
-
+            Path path = new Path(conf.get("feature"));
+            */
             BufferedReader bufferedReader = new BufferedReader(new FileReader(context.getCacheFiles()[0].toString()));//fs.open(path)));
             String lineTxt;
+            int num = 1;
             while ((lineTxt = bufferedReader.readLine()) != null) {
                 String[] txt = lineTxt.split("\\s+");
                 if (txt.length >= 2)
-                    wordMap.put(txt[0], txt[1]);
-                else
-                    txt = null;
+                    wordMap.put(txt[0], new String[]{Integer.toString(num), txt[1]});
+                num++;
             }
             bufferedReader.close();
         }
@@ -141,21 +151,27 @@ public class TFIDF_ {
                 int index = filename.indexOf("-");
                 if (index != -1)
                     filename = filename.substring(0, index);
-                context.write(new Text(wordMap.get(text)), new Text(filename + ":" + value));
+                String val = value.toString();
+                index = val.lastIndexOf(" ");
+                String[] word = wordMap.get(text);
+                double tf = (double) Integer.parseInt(val.substring(0, index)) / Integer.parseInt(val.substring(index + 1));
+                double idf = Double.parseDouble(word[1]);
+                val = tf * idf + "";
+                context.write(new Text(filename), new Text(word[0] + ":" + val));
             }
         }
     }
 
     public static class tfidfReducer extends Reducer<Text, Text, Text, Text> {
         int fileNum;
-        private MultipleOutputs output;
+//        private MultipleOutputs output;
 
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
             super.setup(context);
             Configuration conf = context.getConfiguration();
             fileNum = Integer.parseInt(conf.get("filenum"));
-            output = new MultipleOutputs(context);
+//            output = new MultipleOutputs(context);
         }
 
         protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -169,16 +185,21 @@ public class TFIDF_ {
             }
             Iterator<Map.Entry<String, String>> it = valueMap.entrySet().iterator();
             double idf = Math.log((double) fileNum / valueMap.size());
+            String outtxt = "";
             for (Map.Entry<String, String> entry = it.next(); it.hasNext(); entry = it.next()) {
-                output.write(key, new Text(Integer.parseInt(entry.getValue()) * idf + ""), entry.getKey());
+                String enKey = entry.getKey();
+                String enValue = Double.parseDouble(entry.getValue()) * idf + " ";
+//                output.write(key, new Text(enValue), entry.getKey());
+                outtxt += enKey + ":" + enValue;
             }
+            context.write(key, new Text(outtxt.trim()));
         }
 
-        @Override
-        protected void cleanup(Context context) throws IOException, InterruptedException {
-            output.close();
-            super.cleanup(context);
-        }
+//        @Override
+//        protected void cleanup(Context context) throws IOException, InterruptedException {
+//            output.close();
+//            super.cleanup(context);
+//        }
     }
 
 }

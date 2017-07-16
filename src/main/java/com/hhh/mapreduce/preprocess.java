@@ -73,9 +73,11 @@ public class preprocess {
                 Reader reader = new InputStreamReader(fs.open(fpath));
                 TokenStream ts = analyzer.tokenStream("fieldName", reader);
                 ts.reset();
+                int num = 0;
                 while (ts.incrementToken()) {
                     CharTermAttribute ca = ts.getAttribute(CharTermAttribute.class);
                     String word = ca.toString();
+                    num++;
                     if (wordMap.containsKey(word))
                         wordMap.put(word, wordMap.get(word) + 1);
                     else
@@ -86,7 +88,7 @@ public class preprocess {
                 Writer writer = new OutputStreamWriter(fs.create(outPath));
                 Set<Map.Entry<String, Integer>> it = wordMap.entrySet();
                 for (Map.Entry<String, Integer> entry : it) {
-                    writer.write(entry.getKey() + "\t" + entry.getValue() + "\n");
+                    writer.write(entry.getKey() + "\t" + entry.getValue() + " " + num + "\n");
                 }
                 writer.close();
             }

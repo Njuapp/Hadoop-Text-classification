@@ -1,15 +1,12 @@
 .DS_Store
 task3/
 target/
-tokenized/
 input/
-infogain/
+*gain*/
 part-r-00000
-token/
-temp/
-tfidf/
+token*/
+temp*/
+tfidf*/
 workspace.xml
 out/
-token3/
-infogain3/
 
