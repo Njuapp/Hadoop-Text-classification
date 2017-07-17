@@ -99,15 +99,10 @@ public class InfoGain {
         protected void map(Text key, Text val, Context context)
                 throws IOException, InterruptedException {
             split = (FileSplit) context.getInputSplit();
-            String pathname = split.getPath().getName().toString();
-            int index1 = pathname.indexOf("_"), index2 = pathname.indexOf("-");
-            String label;
-            if (index2 == -1)
-                label = pathname.substring(index1 + 1);
-            else
-                label = pathname.substring(index1 + 1, index2);
-            String k = key.toString() + ":" + label;
-            context.write(new Text(k), new Text("1"));
+            String label = split.getPath().getName();
+            int splitindex = key.toString().lastIndexOf(":");
+            String word = key.toString().substring(0, splitindex);
+            context.write(new Text(word+":"+label), new Text("1"));
 //            if (!map.containsKey(k)) {
 //                map.put(k, val.toString());
 //            }

@@ -64,6 +64,9 @@ public class preprocess {
             if (dpathname.equals(".DS_Store"))
                 continue;
             dpathname = classMap.get(dpathname);
+            Path outPath = new Path(args[3] + "/"+dpathname);
+            Writer writer = new OutputStreamWriter(fs.create(outPath));
+            System.out.println("Class"+dpathname+" completed.");
             for (FileStatus flis : fs.listStatus(dpath)) {
                 Path fpath = flis.getPath();
                 String pathname = fpath.getName();
@@ -84,14 +87,14 @@ public class preprocess {
                         wordMap.put(word, 1);
                 }
                 ts.close();
-                Path outPath = new Path(args[3] + "/" + pathname + "_" + dpathname);
-                Writer writer = new OutputStreamWriter(fs.create(outPath));
+
                 Set<Map.Entry<String, Integer>> it = wordMap.entrySet();
                 for (Map.Entry<String, Integer> entry : it) {
-                    writer.write(entry.getKey() + "\t" + entry.getValue() + " " + num + "\n");
+                    writer.write(entry.getKey() +":"+ pathname + "\t" + entry.getValue() + " " + num + "\n");
                 }
-                writer.close();
+
             }
+            writer.close();
         }
 
 /*
