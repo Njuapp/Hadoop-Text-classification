@@ -16,6 +16,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by joker on 17-7-15.
@@ -28,11 +30,12 @@ public class KNN {
         }
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "KNN");
+        job.setJarByClass(KNN.class);
         job.addCacheFile(new Path(args[0]).toUri());
         FileInputFormat.setInputPaths(job, new Path(args[1]));
         FileOutputFormat.setOutputPath(job, new Path(args[2]));
-        job.setMapperClass(KNNMapper.class);
-        job.setReducerClass(KNNReducer.class);
+        job.setMapperClass(KNN.KNNMapper.class);
+        job.setReducerClass(KNN.KNNReducer.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
         job.waitForCompletion(true);
@@ -40,24 +43,38 @@ public class KNN {
 
     public static class Instance {
         int label;
-        double[] feature = new double[5000];
+        HashMap<Integer, Double> feature = new HashMap<Integer, Double>();
         public Instance(String[] tokens){
             label = Integer.parseInt(tokens[0]);
+            HashMap<Integer, Double> temp = new HashMap<Integer, Double>();
+            double norm = 0.0;
             for(int i = 1; i < tokens.length;i++){
                 int index = tokens[i].indexOf(":");
                 int word_idx = Integer.parseInt(tokens[i].substring(0, index));
                 double word_val = Double.parseDouble(tokens[i].substring(index + 1));
-                feature[word_idx] = word_val;
+                temp.put(word_idx, word_val);
+                norm += word_val * word_val;
+            }
+            norm = Math.sqrt(norm);
+            Iterator<Map.Entry<Integer, Double>> it = temp.entrySet().iterator();
+            while(it.hasNext()){
+                Map.Entry<Integer, Double> entry = it.next();
+                Double val = entry.getValue();
+                Integer idx = entry.getKey();
+                feature.put(idx, val / norm);
             }
         }
         public static double distance (Instance a, Instance b){
-            double norm1 = 0.0, norm2 = 0.0, prod = 0.0;
-            for(int i = 0; i < 5000; i++){
-                norm1 += a.feature[i] * a.feature[i];
-                norm2 += b.feature[i] * b.feature[i];
-                prod += a.feature[i] * b.feature[i];
+            double prod = 0.0;
+            Iterator<Map.Entry<Integer, Double>> it = a.feature.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<Integer, Double> entry = it.next();
+                Integer word_idx = entry.getKey();
+                if (b.feature.containsKey(word_idx)) {
+                    prod += entry.getValue() * b.feature.get(word_idx);
+                }
             }
-            return prod / (Math.sqrt(norm1 * norm2));
+            return prod ;
         }
     }
     public static class KNNMapper extends Mapper<LongWritable, Text, Text, Text>{
@@ -71,7 +88,7 @@ public class KNN {
                     BufferedReader reader = new BufferedReader(new FileReader(files[0].toString()));
                     try{
                         while((line = reader.readLine())!= null){
-                            tokens = line.split(" ");
+                            tokens = line.split("\\s+");
                             train.add(new Instance(tokens));
                         }
                     }
@@ -87,7 +104,7 @@ public class KNN {
 
         @Override
         protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            Instance test = new Instance(value.toString().split(" "));
+            Instance test = new Instance(value.toString().split("\\s+"));
             double[] weight = new double[20];
             for(Instance tr: train){
                 double cos = Instance.distance(test, tr);
