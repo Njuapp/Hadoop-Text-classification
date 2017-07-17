@@ -2,8 +2,10 @@ package com.hhh.mapreduce;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.net.URI;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -85,7 +87,9 @@ public class KNN {
                 String line;
                 String[] tokens;
                 if(files != null && files.length > 0){
-                    BufferedReader reader = new BufferedReader(new FileReader(files[0].toString()));
+                    Configuration conf = context.getConfiguration();
+                    FileSystem fs = FileSystem.get(conf);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(fs.open(new Path(files[0].toString()))));
                     try{
                         while((line = reader.readLine())!= null){
                             tokens = line.split("\\s+");
@@ -106,24 +110,23 @@ public class KNN {
         protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             Instance test = new Instance(value.toString().split("\\s+"));
             double[] weight = new double[20];
+            int pred = -1;
             for(Instance tr: train){
                 double cos = Instance.distance(test, tr);
                 weight[tr.label] += cos;
             }
-            int pred = -1;
             double max = Double.MIN_VALUE;
-            for(int i = 0; i < weight.length; i++){
-                if ( weight[i] > max){
-                    max = weight[i];
+            String info ="";
+            for(int i =0; i < 20; i++){
+                if(weight[i] > max){
                     pred = i;
+                    max = weight[i];
                 }
             }
-            if(pred != test.label){
+            if(test.label == pred)
+                context.write(new Text("right"), new Text("1"));
+            else
                 context.write(new Text("wrong"), new Text("1"));
-            }
-            else{
-                context.write(new Text(("right")), new Text("1"));
-            }
         }
 
     }
@@ -136,7 +139,7 @@ public class KNN {
             for(Text val: values) {
                 sum++;
             }
-            context.write(key, new Text(sum.toString()));
+            context.write(key, new Text(sum+""));
         }
     }
 }

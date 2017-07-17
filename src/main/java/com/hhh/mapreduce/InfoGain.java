@@ -13,6 +13,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.partition.HashPartitioner;
 
 import java.io.*;
 import java.util.*;
@@ -36,7 +37,7 @@ public class InfoGain {
         job1.setInputFormatClass(KeyValueTextInputFormat.class);
         job1.setMapperClass(IGMapper.class);
         job1.setReducerClass(IGReducer.class);
-        job1.setCombinerClass(IGCombiner.class);
+        //job1.setCombinerClass(IGCombiner.class);
         job1.setMapOutputKeyClass(Text.class);
         job1.setMapOutputValueClass(Text.class);
         KeyValueTextInputFormat.addInputPath(job1, new Path(args[0]));
@@ -93,21 +94,14 @@ public class InfoGain {
     }
 
     public static class IGMapper extends Mapper<Text, Text, Text, Text> {
-        HashMap<String, String> map = new HashMap<String, String>();
-        private FileSplit split;
 
         protected void map(Text key, Text val, Context context)
                 throws IOException, InterruptedException {
-            split = (FileSplit) context.getInputSplit();
-            String pathname = split.getPath().getName().toString();
-            int index1 = pathname.indexOf("_"), index2 = pathname.indexOf("-");
-            String label;
-            if (index2 == -1)
-                label = pathname.substring(index1 + 1);
-            else
-                label = pathname.substring(index1 + 1, index2);
-            String k = key.toString() + ":" + label;
-            context.write(new Text(k), new Text("1"));
+            int idx = key.toString().lastIndexOf("_");
+            String word = key.toString().substring(0, idx);
+            FileSplit split = (FileSplit)context.getInputSplit();
+            String label = split.getPath().getName();
+            context.write(new Text(word), new Text(label));
 //            if (!map.containsKey(k)) {
 //                map.put(k, val.toString());
 //            }
@@ -134,12 +128,11 @@ public class InfoGain {
             int[] stat = new int[20];
             int sum = 0;
             for (Text val : values) {
-                int splitindex = val.toString().indexOf(":");
-                int label = Integer.parseInt(val.toString().substring(0, splitindex));
-                int num = Integer.parseInt(val.toString().substring(splitindex + 1));
-                stat[label] += num;
-                sum += num;
+                int label = Integer.parseInt(val.toString());
+                stat[label] ++;
+                sum  ++;
             }
+
             double posentropy = 0.0;
             for (int freq : stat) {
                 if (freq == 0)
@@ -172,17 +165,4 @@ public class InfoGain {
         }
     }
 
-    public static class IGCombiner extends Reducer<Text, Text, Text, Text> {
-        protected void reduce(Text key, Iterable<Text> values, Context context)
-                throws IOException, InterruptedException {
-            int sum = 0;
-            for (Text val : values) {
-                sum += 1;
-            }
-            int index = key.toString().lastIndexOf(":");
-            String word = key.toString().substring(0, index);
-            String label = key.toString().substring(index + 1);
-            context.write(new Text(word), new Text(label + ":" + sum));
-        }
-    }
 }

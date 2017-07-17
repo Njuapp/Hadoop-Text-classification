@@ -58,12 +58,15 @@ public class preprocess {
         if (!fs.exists(outputPath))
             fs.mkdirs(outputPath);
         EnglishAnalyzer analyzer = new EnglishAnalyzer(Version.LUCENE_46);
+
         for (FileStatus fis : fs.listStatus(new Path(args[2]))) {
             Path dpath = fis.getPath();
             String dpathname = dpath.getName();
             if (dpathname.equals(".DS_Store"))
                 continue;
-            dpathname = classMap.get(dpathname);
+            String label = classMap.get(dpathname);
+            Path outPath = new Path(args[3] + "/"+label );
+            Writer writer = new OutputStreamWriter(fs.create(outPath));
             for (FileStatus flis : fs.listStatus(dpath)) {
                 Path fpath = flis.getPath();
                 String pathname = fpath.getName();
@@ -84,14 +87,15 @@ public class preprocess {
                         wordMap.put(word, 1);
                 }
                 ts.close();
-                Path outPath = new Path(args[3] + "/" + pathname + "_" + dpathname);
-                Writer writer = new OutputStreamWriter(fs.create(outPath));
+
                 Set<Map.Entry<String, Integer>> it = wordMap.entrySet();
                 for (Map.Entry<String, Integer> entry : it) {
-                    writer.write(entry.getKey() + "\t" + entry.getValue() + " " + num + "\n");
+                    writer.write(entry.getKey() +"_"+ pathname +"\t" + entry.getValue() + " " + num + "\n");
                 }
-                writer.close();
+
             }
+            System.out.println("class "+ label + "done");
+            writer.close();
         }
 
 /*
